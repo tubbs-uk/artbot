@@ -1,0 +1,6 @@
+uses python 2.7
+
+libraries:
+pySVG
+PIL
+pySerial
