@@ -6,13 +6,18 @@ import string
 from pysvg.parser import *
 from pysvg.core import *
 from Tkinter import *
-import Image, ImageTk, ImageOps
+
+# PIL imports
+# import Image, ImageTk, ImageOps
+
+# Pillow imports
+from PIL import Image, ImageTk, ImageOps
 
 from svgDebug import *
 
 
 
-potraceDir = "c:/mikee/tools/potrace-1.11.win64"
+potraceDir = "c:/mikee/tools/potrace-1.13.win64"
 
 maxWid = 600
 maxHei = 600

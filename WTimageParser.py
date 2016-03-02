@@ -5,7 +5,12 @@ import sys
 import string
 import re
 from Tkinter import *
-import Image, ImageTk, ImageOps
+
+# PIL imports
+# import Image, ImageTk, ImageOps
+
+# Pillow imports
+from PIL import Image, ImageTk, ImageOps
 
 from svgDebug import *
 
