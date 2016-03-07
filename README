@@ -2,5 +2,12 @@ uses python 2.7
 
 libraries:
 pySVG
-PIL
+Pillow
 pySerial
+
+tools:
+potrace or
+wintopo pro
+
+directories:
+c:/temp/svg_create_tmp

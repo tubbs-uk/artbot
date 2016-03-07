@@ -31,13 +31,15 @@ def createImageData(imagePath, workingDir, origImgWin, procImgWin,
    
    # show original image in window
    im = Image.open(imagePath)
-   winWid = origImgWin.config()["width"][4]
-   winHei = origImgWin.config()["height"][4]
-   im=ImageOps.fit(im, (int(origImgWin.config()["width"][4]), int(origImgWin.config()["height"][4])),
-                   Image.ANTIALIAS, centering=(0.5, 0.5))
+   inWid =  im.size[0]
+   inHei =  im.size[1]
+   winWid = int(origImgWin.config()["width"][4])
+   winHei = int(origImgWin.config()["height"][4])
+   im.thumbnail((winWid, winHei))
+
    outWidth = im.size[0]
    outHeight = im.size[1]
-   print "max width: " + str(winWid) + ", max height: " + str(winHei) + ", got width: " + str(outWidth) + ", got height: " + str(outHeight)
+   print "max width: " + str(winWid) + ", max height: " + str(winHei) + ", given width: " + str(inWid) + ", given height: " + str(inHei) + ", got width: " + str(outWidth) + ", got height: " + str(outHeight)
    photIm = ImageTk.PhotoImage(im)
    origImgWin.label = photIm
    origImgWin.create_image((0, 0), image=photIm, anchor=NW)
