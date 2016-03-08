@@ -84,6 +84,9 @@ class CreateSvgApp:
         self.mbOptsGroup = LabelFrame(self.nb, text="mkbitmap options", padx=5, pady=5)
         # self.mbOptsGroup.pack(padx=10, pady=10, side=TOP)
 
+        # svg import
+        self.svgImportGroup = LabelFrame(self.nb, text="SVG Import", padx=5, pady=5)
+
         # wintopo options
         self.wtOptsGroup = LabelFrame(self.nb, text="WinTopo options", padx=5, pady=5)
         # self.wtOptsGroup.pack(padx=10, pady=10, side=TOP)
@@ -92,15 +95,16 @@ class CreateSvgApp:
         self.genOptsGroup = LabelFrame(self.nb, text="General options", padx=5, pady=5)
 
         # put tabs into notebook
-        self.nb.add_screen(self.mbOptsGroup, "SVG")
-        wintB = self.nb.add_screen(self.wtOptsGroup, "WinTopo")
+        self.nb.add_screen(self.mbOptsGroup, "Potrace")
+        self.nb.add_screen(self.wtOptsGroup, "WinTopo")
+        activeTab = self.nb.add_screen(self.svgImportGroup, "SVG Import")
         self.nb.add_screen(self.genOptsGroup, "Options")
 
-        self.nb.choice.set(1)
-        wintB.invoke()
+        self.nb.choice.set(0)
+        activeTab.invoke()
 
         ###########################
-        # svg options
+        # potrace options
 
         # filter
         filtFrame = Frame(self.mbOptsGroup)
@@ -205,6 +209,22 @@ class CreateSvgApp:
         self.WTdespecValEnt = Entry(WTdespecFrame, textvariable=self.WTdespecValVar)
         self.WTdespecValVar.set(4)
         self.WTdespecValEnt.pack(side=LEFT)
+
+        ###########################
+        # SVG import
+
+        # choose svg
+        chooseSvgFrame = Frame(self.svgImportGroup)
+        chooseSvgFrame.pack(side=TOP, anchor=W)
+
+        self.chooseSVGFileBtn = Button(chooseSvgFrame, text="Choose SVG File", command=self.chooseSVGFile)
+        self.chooseSVGFileBtn.pack(side=LEFT)
+
+        self.svgFileLabelVar = StringVar()
+        self.svgFileLabelVar.set("No file")
+        self.svgFileLabel = Label(chooseSvgFrame, textvariable=self.svgFileLabelVar, justify=LEFT)
+        self.svgFileLabel.pack(side=BOTTOM, fill=BOTH, anchor=SW)
+
 
         ###########################
         # General options
@@ -324,6 +344,21 @@ class CreateSvgApp:
         self.fileLabelVar.set(picFile)
 
         self.processFile()
+
+    def chooseSVGFile(self):
+        svgFile = tkFileDialog.askopenfilename(title="Open file", filetypes=[("svg file", ".svg")])
+        if len(svgFile) == 0:
+            return
+        self.svgFileLabelVar.set(svgFile)
+
+        svgW, svgH, lineData = imageParser.convertSvgToLines(svgFile)
+
+        self.m_procImgW = svgW
+        self.m_procImgH = svgH
+        self.m_procSvgW = svgW
+        self.m_procSvgH = svgH
+        self.m_lineData = lineData
+
 
     def processFile(self, fileArg=None):
         if fileArg:
