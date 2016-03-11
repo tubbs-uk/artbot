@@ -359,6 +359,8 @@ class CreateSvgApp:
         self.m_procSvgH = svgH
         self.m_lineData = lineData
 
+        self.dumpLineData()
+
 
     def processFile(self, fileArg=None):
         if fileArg:
@@ -394,11 +396,15 @@ class CreateSvgApp:
 
         print "got back imgw=%d imgh=%d svgw=%d svgh=%d from  createImageData" % (imgW, imgH, svgW, svgH)
 
-        if dumpLineData:
-            outf = open(os.path.join(workingDir, "lineData.txt"), "w")
-            for l in lineData:
-                outf.write(str(l) + "\n")
-            outf.close()
+        self.dumpLineData()
+
+    def dumpLineData(self):
+        if not dumpLineData:
+            return
+        outf = open(os.path.join(workingDir, "lineData.txt"), "w")
+        for l in self.m_lineData:
+            outf.write(str(l) + "\n")
+        outf.close()
 
     def renderFile(self):
         # take line data and render it

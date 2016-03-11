@@ -195,8 +195,8 @@ def convertCubicBezLines(startElemX, startElemY, startX, startY, relX1, relY1, r
       
    if pathClosing:
       addLine([x4, y4, startElemX, startElemY])
-      x4=startElemX
-      y4=startElemY
+      #x4=startElemX
+      #y4=startElemY
    
    return x4, y4, pathClosing
    
@@ -310,8 +310,9 @@ def convertPath(pathVal, svgH):
          startElemX = currX
          startElemY = currY
          currX, currY, pathClosed = convertCubicBezLines(startElemX, startElemY, currX, currY, pathElems[currEl][1:], pathElems[currEl+1], pathElems[currEl+2], pathElems[currEl+3], pathElems[currEl+4], pathElems[currEl+5])
-         startElemX = currX
-         startElemY = currY         
+         if pathClosed:
+            startElemX = currX
+            startElemY = currY
          #currX, currY = testArgs(pathElems[currEl], pathElems[currEl+1], pathElems[currEl+2], pathElems[currEl+3], pathElems[currEl+4], pathElems[currEl+5])
          currEl += 6
       elif elemType == 'L':
@@ -336,6 +337,7 @@ def convertPath(pathVal, svgH):
          # check if next element is a number, if so is continuation of last element
          if lastElemType.lower() == 'c':
             #svgDbg.add("Continuation of cubic bez")
+            #print "adding cubic bez elems", pathElems[currEl], pathElems[currEl+1], pathElems[currEl+2], pathElems[currEl+3], pathElems[currEl+4], pathElems[currEl+5]
             currX, currY, pathClosed = convertCubicBezLines(startElemX, startElemY, currX, currY, pathElems[currEl], pathElems[currEl+1], pathElems[currEl+2], pathElems[currEl+3], pathElems[currEl+4], pathElems[currEl+5])
             startElemX = currX
             startElemY = currY            

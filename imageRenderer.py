@@ -23,8 +23,12 @@ class ImageRenderer:
       for line in lineData:
          lineno += 1
          self.svgRenderCanv.create_line(line[0], self.m_imgH-line[1], line[2], self.m_imgH-line[3], tags="line"+str(lineno))
-         if not lineno % 100:
-            self.svgRenderWin.update()
+         #if not lineno % 100:
+         self.svgRenderWin.update()
+         #if lineno < 230:
+         #   continue
+         #print "rendered line", lineno, "x1, y1, x2, y2: ", line[0], self.m_imgH-line[1], line[2], self.m_imgH-line[3]
+         #time.sleep(1)
 
    def updateLine(self, line, lineno, lineType, drawConnectors):
       connector = False

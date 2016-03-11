@@ -2,10 +2,13 @@ import Tkinter
 
 class SvgDebug:
 
-   def initDebug(self, dbgWin):
-      self.dbgWin = dbgWin
+   def __init__(self):
+      #self.dbgWin = dbgWin
+      self.debugOn = False
 
    def add(self, text):
+      if not self.debugOn:
+         return
       try:
          self.dbgWin.insert('end', text + "\n")
          self.dbgWin.see(Tkinter.END)
