@@ -13,28 +13,31 @@ from svgDebug import *
 
 class SerialWrapper:
    def __init__(self, comPort, serialOn):
+      self.comPort = comPort
+      self.serialOn = serialOn
+      self.m_serObj = None
+
+   def activateSerial(self):
+      if not self.serialOn or self.m_serObj:
+         return
+
       #serialPort = r'\\.\COM15'
-      serialPort = r'\\.\\' + comPort
+      serialPort = r'\\.\\' + self.comPort
       baudRate = 9600
       byteSize = serial.EIGHTBITS
       serParity = serial.PARITY_NONE
       stopBits = serial.STOPBITS_ONE
       serTimeout = 10
-      if serialOn:
-         self.disableSerial = False
-      else:
-         self.disableSerial = True
-      self.m_serObj = None
-      
-      if not self.disableSerial:
-         self.m_serObj = serial.Serial(port=serialPort, baudrate=baudRate, bytesize=byteSize, parity=serParity, stopbits=stopBits, timeout=serTimeout)
-         
+
+      self.m_serObj = serial.Serial(port=serialPort, baudrate=baudRate, bytesize=byteSize, parity=serParity, stopbits=stopBits, timeout=serTimeout)
+
+
    def write(self, s):
-      if self.disableSerial: return
+      if not self.serialOn: return
       self.m_serObj.write(s)
       
    def readline(self):
-      if self.disableSerial: return ""
+      if not self.serialOn: return ""
       return self.m_serObj.readline()
    
    
@@ -189,6 +192,8 @@ class RobotDriver:
       timeDone = 0
       # starts with pen up
       penUp = True
+
+      self.m_ser.activateSerial()
       
       # set pause/resume buttons up in gui
       if self.m_gui:

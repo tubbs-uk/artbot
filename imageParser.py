@@ -37,6 +37,8 @@ def createImageData(imagePath, workingDir, origImgWin, procImgWin,
    winHei = int(origImgWin.config()["height"][4])
    im.thumbnail((winWid, winHei))
 
+   im.save(os.path.join(workingDir, "resized.png"), "PNG")
+
    outWidth = im.size[0]
    outHeight = im.size[1]
    print "max width: " + str(winWid) + ", max height: " + str(winHei) + ", given width: " + str(inWid) + ", given height: " + str(inHei) + ", got width: " + str(outWidth) + ", got height: " + str(outHeight)

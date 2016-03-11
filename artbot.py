@@ -241,7 +241,7 @@ class CreateSvgApp:
 
         self.comValVar = StringVar()
         self.comValEnt = Entry(serialFrame, textvariable=self.comValVar)
-        self.comValVar.set("COM15")
+        self.comValVar.set("COM4")
         self.comValEnt.pack(side=LEFT, fill=BOTH)
 
         # pen servo angles
