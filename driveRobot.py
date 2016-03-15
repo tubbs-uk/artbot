@@ -8,17 +8,17 @@ import re
 import math
 import threading
 from svgDebug import *
+import botOptions
 
 
 
 class SerialWrapper:
-   def __init__(self, comPort, serialOn):
+   def __init__(self, comPort):
       self.comPort = comPort
-      self.serialOn = serialOn
       self.m_serObj = None
 
    def activateSerial(self):
-      if not self.serialOn or self.m_serObj:
+      if not botOptions.getSerialOn() or self.m_serObj:
          return
 
       #serialPort = r'\\.\COM15'
@@ -33,18 +33,18 @@ class SerialWrapper:
 
 
    def write(self, s):
-      if not self.serialOn: return
+      if not botOptions.getSerialOn(): return
       self.m_serObj.write(s)
       
    def readline(self):
-      if not self.serialOn: return ""
+      if not botOptions.getSerialOn(): return ""
       return self.m_serObj.readline()
    
    
    
 class RobotDriver:
 
-   def __init__(self, gui, comPort, serialOn, penUpVal, penDownVal, svgW, svgH, lines):
+   def __init__(self, gui, comPort, penUpVal, penDownVal, svgW, svgH, lines):
       self.m_lines = lines
       self.m_svgW = svgW
       self.m_svgH = svgH
@@ -62,7 +62,7 @@ class RobotDriver:
       #self.m_fullRotationMSecs = 11811
       self.m_fullRotationMSecs = 2985
             
-      self.m_ser = SerialWrapper(comPort, serialOn)
+      self.m_ser = SerialWrapper(comPort)
       
       
       
@@ -250,11 +250,11 @@ class RobotDriver:
       # will exit thread when finished
       
 
-def passLinesToRobot(gui, comPort, serialOn, penUpVal, penDownVal, svgW, svgH, lines):
+def passLinesToRobot(gui, comPort, penUpVal, penDownVal, svgW, svgH, lines):
    #svgDbg.add("given lines: " + str(lines))
 
    # this will create a thread to handle the meat of the function and return immediately
-   robot = RobotDriver(gui, comPort, serialOn, penUpVal, penDownVal, svgW, svgH, lines)
+   robot = RobotDriver(gui, comPort, penUpVal, penDownVal, svgW, svgH, lines)
    
    
    

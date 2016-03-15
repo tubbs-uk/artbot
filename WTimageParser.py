@@ -12,6 +12,7 @@ from Tkinter import *
 # Pillow imports
 from PIL import Image, ImageTk, ImageOps
 
+import botOptions
 from svgDebug import *
 
 # C:/Program\ Files\ \(x86\)/SoftSoft/WinTopo/Topo.exe -oFolder:c:/temp/svg_create_tmp -oASC -oPNG -thr:0 -pru:10 -tZS c:/mikee/python/artbot/test/ns2c_small.JPG
@@ -22,7 +23,7 @@ maxWid = 600
 maxHei = 600
 
 
-def createImageData(imagePath, workingDir, origImgWin, procImgWin,
+def createImageData(imagePath, origImgWin, procImgWin,
                     despec, despecVal):
    """Given arguments about the import image and how to process it,
    simplify and resize it, pass it to wintopo for images processing and vectorisation"""
@@ -35,7 +36,7 @@ def createImageData(imagePath, workingDir, origImgWin, procImgWin,
    origImgWin.create_image((0, 0), image=photIm, anchor=NW)
    
    # convert image to svg
-   vecFile, wid, hei = convertImageToVectorFormat(imagePath, workingDir, procImgWin,
+   vecFile, wid, hei = convertImageToVectorFormat(imagePath, procImgWin,
                                                   despec, despecVal)
                                
    # convert image data to path data
@@ -47,13 +48,13 @@ def createImageData(imagePath, workingDir, origImgWin, procImgWin,
 ##########################################################################
 # Turn image into wintopo vector file
 
-def convertImageToVectorFormat(imagePath, workingDir, procImgWin,
+def convertImageToVectorFormat(imagePath, procImgWin,
                                despec, despecVal):
    # convert chosen file to png and resize
    im = Image.open(imagePath)
    filename = os.path.basename(imagePath)
    base = filename.split('.')[0]
-   pngInputFile = os.path.join(workingDir, base+".png")
+   pngInputFile = os.path.join(botOptions.workingDir, base+".png")
    
    wid, hei = im.size
    print "input image size =", wid, "hei =", hei
@@ -72,7 +73,7 @@ def convertImageToVectorFormat(imagePath, workingDir, procImgWin,
    despecSw = "-des:" + str(despecVal)
    
    # create command line and launch
-   wtCmd = [WTexe, "-oFolder:"+workingDir]
+   wtCmd = [WTexe, "-oFolder:"+botOptions.workingDir]
    wtCmd.append("-eCN") # canny edge detection with defaults
    if despec: wtCmd.append(despecSw)
    wtCmd.extend(["-oPNG", "-oTXT"])
@@ -82,13 +83,13 @@ def convertImageToVectorFormat(imagePath, workingDir, procImgWin,
    subprocess.call(wtCmd)
    
    # show processed image in window
-   im = Image.open(os.path.join(workingDir, base +".png"))
+   im = Image.open(os.path.join(botOptions.workingDir, base +".png"))
    im=ImageOps.fit(im, (int(procImgWin.config()["width"][4]), int(procImgWin.config()["height"][4])), Image.ANTIALIAS)
    photIm = ImageTk.PhotoImage(im)
    procImgWin.label = photIm
    procImgWin.create_image((0, 0), image=photIm, anchor=NW)
    
-   return os.path.join(workingDir, base +".txt"), wid, hei
+   return os.path.join(botOptions.workingDir, base +".txt"), wid, hei
 
 
 

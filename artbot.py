@@ -1,6 +1,8 @@
 from svgDebug import *
 import imageParser
 import WTimageParser
+import botOptions
+
 from imageRenderer import *
 from driveRobot import *
 from notebook import *
@@ -15,11 +17,10 @@ import threading
 import Queue
 import time
 
-workingDir = "c:/temp/svg_create_tmp"
 dumpLineData = True
 
-if os.path.exists(workingDir) == False:
-    os.makedirs(workingDir)
+if os.path.exists(botOptions.workingDir) == False:
+    os.makedirs(botOptions.workingDir)
 
 
 class CreateSvgApp:
@@ -110,87 +111,61 @@ class CreateSvgApp:
         filtFrame = Frame(self.mbOptsGroup)
         filtFrame.pack(side=TOP, anchor=W)
 
-        self.filterVar = IntVar()
         self.filtChk = Checkbutton(filtFrame, text="Filter",
-                                   variable=self.filterVar, command=self.filterCb)
-        self.filterVar.set(1)
+                                   variable=botOptions.filterOn, command=self.filterCb)
         self.filtChk.pack(side=LEFT)
 
-        self.filtValVar = StringVar()
-        self.filtValEnt = Entry(filtFrame, textvariable=self.filtValVar)
-        self.filtValVar.set(4)
+        self.filtValEnt = Entry(filtFrame, textvariable=botOptions.filterVal)
         self.filtValEnt.pack(side=LEFT)
 
         # blur
         blurFrame = Frame(self.mbOptsGroup)
         blurFrame.pack(side=TOP, anchor=W)
 
-        self.blurVar = IntVar()
         self.blurChk = Checkbutton(blurFrame, text="Blur",
-                                   variable=self.blurVar, command=self.blurCb)
+                                   variable=botOptions.blurOn, command=self.blurCb)
         self.blurChk.pack(side=LEFT, anchor=W)
 
-        self.blurValVar = StringVar()
-        self.blurValEnt = Entry(blurFrame, textvariable=self.blurValVar)
-        self.blurValEnt['state'] = DISABLED
-        self.blurValVar.set(0)
+        self.blurValEnt = Entry(blurFrame, textvariable=botOptions.blurVal)
         self.blurValEnt.pack(side=LEFT)
 
         # scale
         scaleFrame = Frame(self.mbOptsGroup)
         scaleFrame.pack(side=TOP, anchor=W)
 
-        self.scaleVar = IntVar()
         self.scaleChk = Checkbutton(scaleFrame, text="Scale",
-                                    variable=self.scaleVar, command=self.scaleCb)
-        self.scaleVar.set(1)
+                                    variable=botOptions.scaleOn, command=self.scaleCb)
         self.scaleChk.pack(side=LEFT, anchor=W)
 
-        self.scaleValVar = StringVar()
-        self.scaleValEnt = Entry(scaleFrame, textvariable=self.scaleValVar)
-        self.scaleValEnt['state'] = NORMAL
-        self.scaleValVar.set(1)
+        self.scaleValEnt = Entry(scaleFrame, textvariable=botOptions.scaleVal)
         self.scaleValEnt.pack(side=LEFT)
 
         # threshold
         threshFrame = Frame(self.mbOptsGroup)
         threshFrame.pack(side=TOP, anchor=W)
 
-        self.threshVar = IntVar()
         self.threshChk = Checkbutton(threshFrame, text="Threshold",
-                                     variable=self.threshVar, command=self.threshCb)
+                                     variable=botOptions.threshOn, command=self.threshCb)
         self.threshChk.pack(side=LEFT, anchor=W)
 
-        self.threshValVar = StringVar()
-        self.threshValEnt = Entry(threshFrame, textvariable=self.threshValVar)
-        self.threshValEnt['state'] = DISABLED
-        self.threshValVar.set(0.45)
+        self.threshValEnt = Entry(threshFrame, textvariable=botOptions.threshVal)
         self.threshValEnt.pack(side=LEFT)
 
         # interpolation
         interpFrame = Frame(self.mbOptsGroup)
         interpFrame.pack(side=TOP, anchor=W)
 
-        self.interpVar = IntVar()
-        self.linRad = Radiobutton(interpFrame, text="Linear", variable=self.interpVar, value=1).pack(side=LEFT,
+        self.linRad = Radiobutton(interpFrame, text="Linear Interpolation", variable=botOptions.interpolationType, value=1).pack(side=LEFT,
                                                                                                      anchor=W)
-        self.cubRad = Radiobutton(interpFrame, text="Cubic", variable=self.interpVar, value=2).pack(side=LEFT, anchor=W)
-        self.interpVar.set(1)
+        self.cubRad = Radiobutton(interpFrame, text="Cubic Interpolation", variable=botOptions.interpolationType, value=2).pack(side=LEFT, anchor=W)
 
         # invert
         invFrame = Frame(self.mbOptsGroup)
         invFrame.pack(side=TOP, anchor=W)
 
-        self.invertVar = IntVar()
         self.invertChk = Checkbutton(invFrame, text="Invert",
-                                     variable=self.invertVar)
+                                     variable=botOptions.invertOn)
         self.invertChk.pack(side=LEFT)
-
-        # grey
-        self.greyVar = IntVar()
-        self.greyChk = Checkbutton(invFrame, text="Grey",
-                                   variable=self.greyVar)
-        self.greyChk.pack(side=RIGHT, anchor=E)
 
         ###########################
         # Wintopo options
@@ -233,10 +208,8 @@ class CreateSvgApp:
         serialFrame = Frame(self.genOptsGroup)
         serialFrame.pack(side=TOP, anchor=W)
 
-        self.serialOnVar = IntVar()
         self.serialOnChk = Checkbutton(serialFrame, text="Serial",
-                                       variable=self.serialOnVar, command=self.serialCtrlCb)
-        self.serialOnVar.set(1)
+                                       variable=botOptions.serialOn, command=self.serialCtrlCb)
         self.serialOnChk.pack(side=LEFT)
 
         self.comValVar = StringVar()
@@ -281,8 +254,12 @@ class CreateSvgApp:
         self.procImgWin.pack(side=LEFT, anchor=W)
 
 
-
-
+        # get controls to take appropriate enabled/disabled state
+        self.serialCtrlCb()
+        self.filterCb()
+        self.blurCb()
+        self.scaleCb()
+        self.threshCb()
 
 
         # svgDbg.initDebug(self.txtWin)
@@ -294,25 +271,25 @@ class CreateSvgApp:
 
     # potrace options
     def filterCb(self):
-        if self.filterVar.get() == 1:
+        if botOptions.getFilterOn() == 1:
             self.filtValEnt['state'] = NORMAL
         else:
             self.filtValEnt['state'] = DISABLED
 
     def blurCb(self):
-        if self.blurVar.get() == 1:
+        if botOptions.getBlurOn() == 1:
             self.blurValEnt['state'] = NORMAL
         else:
             self.blurValEnt['state'] = DISABLED
 
     def scaleCb(self):
-        if self.scaleVar.get() == 1:
+        if botOptions.getScaleOn() == 1:
             self.scaleValEnt['state'] = NORMAL
         else:
             self.scaleValEnt['state'] = DISABLED
 
     def threshCb(self):
-        if self.threshVar.get() == 1:
+        if botOptions.getThreshOn() == 1:
             self.threshValEnt['state'] = NORMAL
         else:
             self.threshValEnt['state'] = DISABLED
@@ -330,7 +307,7 @@ class CreateSvgApp:
 
     # general options
     def serialCtrlCb(self):
-        if self.serialOnVar.get() == 1:
+        if botOptions.getSerialOn() == 1:
             self.comValEnt['state'] = NORMAL
         else:
             self.comValEnt['state'] = DISABLED
@@ -371,20 +348,12 @@ class CreateSvgApp:
         # take image and turn it into line data
         if self.nb.choice.get() == 0:
             # process as SVG
-            imgW, imgH, svgW, svgH, lineData = imageParser.createImageData(picFile, workingDir,
-                                                                           self.origImgWin, self.procImgWin,
-                                                                           self.scaleVar.get(), self.scaleValEnt.get(),
-                                                                           self.interpVar.get(),
-                                                                           self.threshVar.get(),
-                                                                           self.threshValEnt.get(),
-                                                                           self.filterVar.get(), self.filtValEnt.get(),
-                                                                           self.invertVar.get())
+            imgW, imgH, svgW, svgH, lineData = imageParser.createImageData(picFile, self.origImgWin, self.procImgWin)
         else:
             # process as WinTopo
 
             # take image and turn it into line data
-            imgW, imgH, svgW, svgH, lineData = WTimageParser.createImageData(picFile, workingDir,
-                                                                             self.origImgWin, self.procImgWin,
+            imgW, imgH, svgW, svgH, lineData = WTimageParser.createImageData(picFile, self.origImgWin, self.procImgWin,
                                                                              self.WTdespecVar.get(),
                                                                              self.WTdespecValEnt.get())
 
@@ -401,7 +370,7 @@ class CreateSvgApp:
     def dumpLineData(self):
         if not dumpLineData:
             return
-        outf = open(os.path.join(workingDir, "lineData.txt"), "w")
+        outf = open(os.path.join(botOptions.workingDir, "lineData.txt"), "w")
         for l in self.m_lineData:
             outf.write(str(l) + "\n")
         outf.close()
@@ -415,10 +384,10 @@ class CreateSvgApp:
             self.m_renderWin.createWinAndDrawLineData(self.m_lineData)
 
         comPort = self.comValVar.get()
-        serialOn = self.serialOnVar.get()
+        serialOn = botOptions.serialOn.get()
         penUpVal = self.penUpValEnt.get()
         penDownVal = self.penDownValEnt.get()
-        self.m_robot = RobotDriver(self, comPort, serialOn, penUpVal, penDownVal, self.m_procSvgW, self.m_procSvgH,
+        self.m_robot = RobotDriver(self, comPort, penUpVal, penDownVal, self.m_procSvgW, self.m_procSvgH,
                                    self.m_lineData)
         totTime = self.m_robot.calculateTimes()
         self.timeLabelVar.set(self.convToTime(0) + " / " + self.convToTime(totTime))
@@ -434,12 +403,11 @@ class CreateSvgApp:
         self.timeLabelVar.set("00:00:00 / 00:00:00")
         self.m_robotDriveProgress = 0
         comPort = self.comValVar.get()
-        serialOn = self.serialOnVar.get()
         penUpVal = self.penUpValEnt.get()
         penDownVal = self.penDownValEnt.get()
 
         # take line data and pass to robot
-        # driveRobot.passLinesToRobot(self, comPort, serialOn, penUpVal, penDownVal, self.m_procSvgW, self.m_procSvgH, self.m_lineData)
+        # driveRobot.passLinesToRobot(self, comPort, penUpVal, penDownVal, self.m_procSvgW, self.m_procSvgH, self.m_lineData)
         self.m_robot.sendToRobot()
 
     def pauseDrawing(self):
@@ -492,8 +460,8 @@ class CreateSvgApp:
 
         return self.m_paused
 
-
 root = Tk()
+botOptions.initOptions()
 app = CreateSvgApp(root)
 
 # default to loading command line arg if specified
