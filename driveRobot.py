@@ -13,8 +13,7 @@ import botOptions
 
 
 class SerialWrapper:
-   def __init__(self, comPort):
-      self.comPort = comPort
+   def __init__(self):
       self.m_serObj = None
 
    def activateSerial(self):
@@ -22,7 +21,7 @@ class SerialWrapper:
          return
 
       #serialPort = r'\\.\COM15'
-      serialPort = r'\\.\\' + self.comPort
+      serialPort = r'\\.\\' + botOptions.getSerialVal()
       baudRate = 9600
       byteSize = serial.EIGHTBITS
       serParity = serial.PARITY_NONE
@@ -44,7 +43,7 @@ class SerialWrapper:
    
 class RobotDriver:
 
-   def __init__(self, gui, comPort, penUpVal, penDownVal, svgW, svgH, lines):
+   def __init__(self, gui, svgW, svgH, lines):
       self.m_lines = lines
       self.m_svgW = svgW
       self.m_svgH = svgH
@@ -53,8 +52,6 @@ class RobotDriver:
       self.m_lineTimes = []
       # try and estimate time to either raise or lower pen (in ms)
       self.m_movePenTime = 100
-      self.m_penUpAngle = penUpVal
-      self.m_penDownAngle = penDownVal
       
       # 10,000ms drives for 405mm
       # so 5,000ms should go 202.5mm (approx length of A4)
@@ -62,7 +59,7 @@ class RobotDriver:
       #self.m_fullRotationMSecs = 11811
       self.m_fullRotationMSecs = 2985
             
-      self.m_ser = SerialWrapper(comPort)
+      self.m_ser = SerialWrapper()
       
       
       
@@ -108,14 +105,14 @@ class RobotDriver:
       # finished doing line now
       
    def penUp(self):
-      svgDbg.add("Raising pen to " + str(self.m_penUpAngle))
-      self.m_ser.write('P' + str(self.m_penUpAngle) + '\n')
+      svgDbg.add("Raising pen to " + botOptions.getPenUpVal())
+      self.m_ser.write('P' + botOptions.getPenUpVal() + '\n')
          
       self.m_ser.readline()
       
    def penDown(self):
-      svgDbg.add("Lowering pen to " + str(self.m_penDownAngle))
-      self.m_ser.write('P' + str(self.m_penDownAngle) + '\n')
+      svgDbg.add("Lowering pen to " + botOptions.getPenDownVal())
+      self.m_ser.write('P' + botOptions.getPenDownVal() + '\n')
          
       self.m_ser.readline()
       
@@ -250,11 +247,11 @@ class RobotDriver:
       # will exit thread when finished
       
 
-def passLinesToRobot(gui, comPort, penUpVal, penDownVal, svgW, svgH, lines):
+def passLinesToRobot(gui, svgW, svgH, lines):
    #svgDbg.add("given lines: " + str(lines))
 
    # this will create a thread to handle the meat of the function and return immediately
-   robot = RobotDriver(gui, comPort, penUpVal, penDownVal, svgW, svgH, lines)
+   robot = RobotDriver(gui, svgW, svgH, lines)
    
    
    

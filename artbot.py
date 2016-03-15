@@ -17,11 +17,6 @@ import threading
 import Queue
 import time
 
-dumpLineData = True
-
-if os.path.exists(botOptions.workingDir) == False:
-    os.makedirs(botOptions.workingDir)
-
 
 class CreateSvgApp:
     def __init__(self, master):
@@ -174,15 +169,11 @@ class CreateSvgApp:
         WTdespecFrame = Frame(self.wtOptsGroup)
         WTdespecFrame.pack(side=TOP, anchor=W)
 
-        self.WTdespecVar = IntVar()
         self.WTdespecChk = Checkbutton(WTdespecFrame, text="Despeckle",
-                                       variable=self.WTdespecVar, command=self.WTdespecCb)
-        self.WTdespecVar.set(1)
+                                       variable=botOptions.WTDespecleOn, command=self.WTdespecCb)
         self.WTdespecChk.pack(side=LEFT)
 
-        self.WTdespecValVar = StringVar()
-        self.WTdespecValEnt = Entry(WTdespecFrame, textvariable=self.WTdespecValVar)
-        self.WTdespecValVar.set(4)
+        self.WTdespecValEnt = Entry(WTdespecFrame, textvariable=botOptions.WTDespecleVal)
         self.WTdespecValEnt.pack(side=LEFT)
 
         ###########################
@@ -212,9 +203,7 @@ class CreateSvgApp:
                                        variable=botOptions.serialOn, command=self.serialCtrlCb)
         self.serialOnChk.pack(side=LEFT)
 
-        self.comValVar = StringVar()
-        self.comValEnt = Entry(serialFrame, textvariable=self.comValVar)
-        self.comValVar.set("COM4")
+        self.comValEnt = Entry(serialFrame, textvariable=botOptions.serialVal)
         self.comValEnt.pack(side=LEFT, fill=BOTH)
 
         # pen servo angles
@@ -224,23 +213,18 @@ class CreateSvgApp:
         self.penUpLabel = Label(penAngleFrame, text="Pen Up Angle: ")
         self.penUpLabel.pack(side=LEFT, fill=BOTH)
 
-        self.penUpValVar = StringVar()
-        self.penUpValEnt = Entry(penAngleFrame, textvariable=self.penUpValVar)
-        self.penUpValVar.set("102")
+        self.penUpValEnt = Entry(penAngleFrame, textvariable=botOptions.penUpVal)
         self.penUpValEnt.pack(side=LEFT, fill=BOTH)
 
         self.penDownLabel = Label(penAngleFrame, text="Pen Down Angle: ")
         self.penDownLabel.pack(side=LEFT, fill=BOTH)
 
-        self.penDownValVar = StringVar()
-        self.penDownValEnt = Entry(penAngleFrame, textvariable=self.penDownValVar)
-        self.penDownValVar.set("85")
+        self.penDownValEnt = Entry(penAngleFrame, textvariable=botOptions.penDownVal)
         self.penDownValEnt.pack(side=LEFT, fill=BOTH)
 
         # draw connecting lines when simulating robot drawing
-        self.drawConnectVar = IntVar()
         self.drawConnectChk = Checkbutton(self.genOptsGroup, text="Render Connecting Lines",
-                                          variable=self.drawConnectVar)
+                                          variable=botOptions.renderConnectingOn)
         self.drawConnectChk.pack(side=TOP, anchor=W)
 
         ###########################
@@ -260,6 +244,7 @@ class CreateSvgApp:
         self.blurCb()
         self.scaleCb()
         self.threshCb()
+        self.WTdespecCb()
 
 
         # svgDbg.initDebug(self.txtWin)
@@ -300,7 +285,7 @@ class CreateSvgApp:
             # wintopo options
 
     def WTdespecCb(self):
-        if self.WTdespecVar.get() == 1:
+        if botOptions.getWTDespecleOn() == 1:
             self.WTdespecValEnt['state'] = NORMAL
         else:
             self.WTdespecValEnt['state'] = DISABLED
@@ -353,9 +338,7 @@ class CreateSvgApp:
             # process as WinTopo
 
             # take image and turn it into line data
-            imgW, imgH, svgW, svgH, lineData = WTimageParser.createImageData(picFile, self.origImgWin, self.procImgWin,
-                                                                             self.WTdespecVar.get(),
-                                                                             self.WTdespecValEnt.get())
+            imgW, imgH, svgW, svgH, lineData = WTimageParser.createImageData(picFile, self.origImgWin, self.procImgWin)
 
         self.m_procImgW = imgW
         self.m_procImgH = imgH
@@ -368,7 +351,7 @@ class CreateSvgApp:
         self.dumpLineData()
 
     def dumpLineData(self):
-        if not dumpLineData:
+        if not botOptions.dumpLineData:
             return
         outf = open(os.path.join(botOptions.workingDir, "lineData.txt"), "w")
         for l in self.m_lineData:
@@ -383,11 +366,7 @@ class CreateSvgApp:
         else:
             self.m_renderWin.createWinAndDrawLineData(self.m_lineData)
 
-        comPort = self.comValVar.get()
-        serialOn = botOptions.serialOn.get()
-        penUpVal = self.penUpValEnt.get()
-        penDownVal = self.penDownValEnt.get()
-        self.m_robot = RobotDriver(self, comPort, penUpVal, penDownVal, self.m_procSvgW, self.m_procSvgH,
+        self.m_robot = RobotDriver(self, self.m_procSvgW, self.m_procSvgH,
                                    self.m_lineData)
         totTime = self.m_robot.calculateTimes()
         self.timeLabelVar.set(self.convToTime(0) + " / " + self.convToTime(totTime))
@@ -395,19 +374,16 @@ class CreateSvgApp:
     # for calling when passing file on command line
     def procFile(self, file):
         self.processFile(file)
-        self.renderFile
+        self.renderFile()
 
     def sendToRobot(self):
         # reset time and prog bar
         self.progBar.stop()
         self.timeLabelVar.set("00:00:00 / 00:00:00")
         self.m_robotDriveProgress = 0
-        comPort = self.comValVar.get()
-        penUpVal = self.penUpValEnt.get()
-        penDownVal = self.penDownValEnt.get()
 
         # take line data and pass to robot
-        # driveRobot.passLinesToRobot(self, comPort, penUpVal, penDownVal, self.m_procSvgW, self.m_procSvgH, self.m_lineData)
+        # driveRobot.passLinesToRobot(self, self.m_procSvgW, self.m_procSvgH, self.m_lineData)
         self.m_robot.sendToRobot()
 
     def pauseDrawing(self):
@@ -447,7 +423,7 @@ class CreateSvgApp:
 
     def updateRobotLine(self, lineType, line, lineno, totlines, timePassed, totTime):
         # svgDbg.add("got lineno:"+str(lineno)+ " totlines="+str(totlines))
-        self.m_renderWin.updateLine(line, lineno, lineType, self.drawConnectVar.get())
+        self.m_renderWin.updateLine(line, lineno, lineType)
 
         # update progress bar
         progress = int((lineno / float(totlines)) * 100)
@@ -461,7 +437,13 @@ class CreateSvgApp:
         return self.m_paused
 
 root = Tk()
+# make sure to call this before using any of the bot options
 botOptions.initOptions()
+
+if os.path.exists(botOptions.workingDir) == False:
+    os.makedirs(botOptions.workingDir)
+
+
 app = CreateSvgApp(root)
 
 # default to loading command line arg if specified

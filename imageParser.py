@@ -16,7 +16,7 @@ from svgDebug import *
 
 
 
-potraceDir = "c:/mikee/tools/potrace-1.13.win64"
+
 
 maxWid = 600
 maxHei = 600
@@ -75,7 +75,7 @@ def convertImageToSvg(imagePath, procImgWin):
    im.save(pgmInputFile)
    
    # pass pgm file to mkbitmap
-   mkBmCmd = [os.path.join(potraceDir, "mkbitmap.exe")]
+   mkBmCmd = [os.path.join(botOptions.potraceDir, "mkbitmap.exe")]
    pgmOutputFile = os.path.join(botOptions.workingDir, base +"_masked.pgm")
    mkBmCmd.extend(["-o", pgmOutputFile])
    
@@ -112,7 +112,7 @@ def convertImageToSvg(imagePath, procImgWin):
    procImgWin.create_image((0, 0), image=photIm, anchor=NW)
    
    # pass output pgm to potrace to create svg
-   ptCmd = [os.path.join(potraceDir, "potrace.exe"), "-s", "-o"]
+   ptCmd = [os.path.join(botOptions.potraceDir, "potrace.exe"), "-s", "-o"]
    svgOut = os.path.join(botOptions.workingDir, base +".svg")
    ptCmd.extend([svgOut, pgmOutputFile])
    subprocess.call(ptCmd)

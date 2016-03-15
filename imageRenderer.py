@@ -2,6 +2,7 @@ from Tkinter import *
 import sys
 import time
 
+import botOptions
 from svgDebug import *
 
 class ImageRenderer:
@@ -30,7 +31,7 @@ class ImageRenderer:
          #print "rendered line", lineno, "x1, y1, x2, y2: ", line[0], self.m_imgH-line[1], line[2], self.m_imgH-line[3]
          #time.sleep(1)
 
-   def updateLine(self, line, lineno, lineType, drawConnectors):
+   def updateLine(self, line, lineno, lineType):
       connector = False
       if lineType == 'C':
          col="blue"
@@ -38,5 +39,5 @@ class ImageRenderer:
       else:
          col="red"
          
-      if not connector or (connector and drawConnectors):
+      if not connector or (connector and botOptions.getRenderConnectingOn()):
          self.svgRenderCanv.create_line(line[0], self.m_imgH-line[1], line[2], self.m_imgH-line[3], fill=col)
