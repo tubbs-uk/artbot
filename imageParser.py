@@ -106,7 +106,11 @@ def convertImageToSvg(imagePath, procImgWin):
    
    # show processed image in window
    im = Image.open(pgmOutputFile)
-   im=ImageOps.fit(im, (int(procImgWin.config()["width"][4]), int(procImgWin.config()["height"][4])), Image.ANTIALIAS)
+
+   procWinWid = int(procImgWin.config()["width"][4])
+   procWinHei = int(procImgWin.config()["height"][4])
+   im.thumbnail((procWinWid, procWinHei))
+
    photIm = ImageTk.PhotoImage(im)
    procImgWin.label = photIm
    procImgWin.create_image((0, 0), image=photIm, anchor=NW)

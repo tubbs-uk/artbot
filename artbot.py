@@ -300,7 +300,6 @@ class CreateSvgApp:
     def chooseFile(self):
         picFile = tkFileDialog.askopenfilename(title="Open file", filetypes=[("jpg file", ".jpg"), ("png file", ".png"),
                                                                              ("All files", ".*")])
-        print "chosen file: ", picFile
         if len(picFile) == 0:
             return
         self.fileLabelVar.set(picFile)
