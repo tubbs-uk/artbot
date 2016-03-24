@@ -50,6 +50,10 @@ class RobotDriver:
       self.m_maxSvgDimen = max(svgW, svgH)
       self.m_gui = gui
       self.m_lineTimes = []
+
+      # starts with pen up
+      self.penIsUp = True
+
       # try and estimate time to either raise or lower pen (in ms)
       self.m_movePenTime = 100
       
@@ -103,18 +107,30 @@ class RobotDriver:
    
       self.m_ser.readline()
       # finished doing line now
-      
+
+   # return time take to move pen
    def penUp(self):
+      if self.penIsUp:
+         return 0
+
       svgDbg.add("Raising pen to " + botOptions.getPenUpVal())
       self.m_ser.write('P' + botOptions.getPenUpVal() + '\n')
-         
+
       self.m_ser.readline()
-      
+      self.penIsUp = True
+      return self.m_movePenTime
+
+   # return time take to move pen
    def penDown(self):
+      if not self.penIsUp:
+         return 0
+
       svgDbg.add("Lowering pen to " + botOptions.getPenDownVal())
       self.m_ser.write('P' + botOptions.getPenDownVal() + '\n')
-         
+
       self.m_ser.readline()
+      self.penIsUp = False
+      return self.m_movePenTime
       
    def conv2Angs(self, line, lastAng):
       angleDistData = angleData.cartesianToPolar(line)
@@ -137,18 +153,23 @@ class RobotDriver:
       #self.m_lines.sort(key=lambda tot: sum(tot))
       
       totLines = len(self.m_lines)
+      if totLines < 1:
+         return
+
       self.m_totMs = 0
       totZangs = 0
-      prevLine = []
-      
+
+      # add an implicit first line going from 0,0 to the start of the first line
+      # to allow the robot to start at the bottom of the page pointing up and drive to it's first point
+      prevLine = [0, 0, 0, 0]
+
       for line in self.m_lines:
          lineno += 1
          svgDbg.add("looking at orig line " + str(lineno) + "/" + str(totLines) + ": " + str(line))
          
-         
+
          if len(prevLine) != 0 and prevLine[2] != line[0] and prevLine[3] != line[1]:
             # create a line linking the previous endpoint with the new startpoint (if different)
-            # if I come up with a mechanism for raising and lowering the pen, I would need to raise it at this point!
             svgDbg.add("adding connection between " + str(prevLine) + " and " + str(line))
             
             # add time in to account for raising and lowering the pen
@@ -156,7 +177,6 @@ class RobotDriver:
             
             # create a line which starts where the last one ended, and ends where the new one starts
             connectLine = [prevLine[2], prevLine[3], line[0], line[1]]
-            #connectLine = [1, 2, 3, 4]
             
             calcang, angleMs, distMs, lastAng = self.conv2Angs(connectLine, lastAng)
             if angleMs == 0:
@@ -187,8 +207,6 @@ class RobotDriver:
       lineno = 0
       totLines = len(self.m_lineTimes)
       timeDone = 0
-      # starts with pen up
-      penUp = True
 
       self.m_ser.activateSerial()
       
@@ -206,22 +224,14 @@ class RobotDriver:
          
          if line[0] == 'C':
             svgDbg.add("CONNECTOR")
-            if not penUp:
-               self.penUp()
-               # if connecting line, add time to raise pen
-               timeDone += self.m_movePenTime
-               penUp = True
+            timeDone += self.penUp()
+
          elif line[0] == 'L':
             svgDbg.add("LINE")
-            if penUp:
-               self.penDown()
-               # if drawing line, add time to lower pen
-               timeDone += self.m_movePenTime
-               penUp = False
+            timeDone += self.penDown()
          
          self.doLine(line[4])
          timeDone += line[4]
-         
          
 
          #winUpdate = False
