@@ -86,6 +86,9 @@ def initOptions():
     global dumpLineData
     dumpLineData = True
 
+    global useTimedTurns
+    useTimedTurns = False
+
 
 def getFilterOn():
     return filterOn.get()
