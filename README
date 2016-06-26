@@ -8,7 +8,7 @@ pySerial
 tools:
 potrace or
 wintopo pro
-https://inkscape.org/en/download/windows/
+https://inkscape.org/en/download/windows/ (doesn't work, only seems to produce svg 1.1)
 
 directories:
 c:/temp/svg_create_tmp
