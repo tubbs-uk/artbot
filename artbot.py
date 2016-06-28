@@ -298,8 +298,8 @@ class CreateSvgApp:
             self.comValEnt['state'] = DISABLED
 
     def chooseFile(self):
-        picFile = tkFileDialog.askopenfilename(title="Open file", filetypes=[("jpg file", ".jpg"),
-                                                                             ("png file", ".png"),
+        picFile = tkFileDialog.askopenfilename(title="Open file", filetypes=[("png file", ".png"),
+                                                                             ("jpg file", ".jpg"),
                                                                              ("All files", ".*")])
         if len(picFile) == 0:
             return

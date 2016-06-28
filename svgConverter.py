@@ -208,11 +208,12 @@ def convertPath(pathVal, svgH):
         elif elemType == 'l':
             #svgDbg.add("Rel line")
             lastElemType = elemType
-            startElemX = currX
-            startElemY = currY
+            #startElemX = currX
+            #startElemY = currY
             currX, currY, pathClosed = convertLine(startElemX, startElemY, currX, currY, pathElems[currEl][1:], pathElems[currEl+1])
-            startElemX = currX
-            startElemY = currY
+            if pathClosed:
+                startElemX = currX
+                startElemY = currY
             currEl += 2
         elif elemType == '-' or elemType in string.digits:
             # check if next element is a number, if so is continuation of last element
@@ -232,8 +233,9 @@ def convertPath(pathVal, svgH):
             elif lastElemType == 'l':
                 #svgDbg.add("Continuation of rel line")
                 currX, currY, pathClosed = convertLine(startElemX, startElemY, currX, currY, pathElems[currEl], pathElems[currEl+1])
-                startElemX = currX
-                startElemY = currY
+                if pathClosed:
+                    startElemX = currX
+                    startElemY = currY
                 currEl += 2
             else:
                 svgDbg.add("unknown continuation %s" % elemType)
