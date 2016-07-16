@@ -25,6 +25,8 @@ ServoTimer2 penServo;
 int fullRotationMSecs = 11811;
 // number of ms to drive the full length of the sheet
 int fullLengthMSecs = 5000;
+// time to wait (ms) before polling angle when turning
+int turnDelay = 10;
 
 // 10000 drives for 405mm
 // so 5000 should go 202.5mm
@@ -61,26 +63,72 @@ void reverse(int dist, int vel) {          // reverse: both motors set to revers
    stop();   
 }
              
-void rot_cw (int angle, int vel) {         // rotate clock-wise: right-hand motor reversed, left-hand motor forward
+void rot_cw (int angle, int vel, boolean dontStop=false) {         // rotate clock-wise: right-hand motor reversed, left-hand motor forward
    digitalWrite(dirA, revA); 
    digitalWrite(dirB, fwdB);
    analogWrite(speedA, vel);   // both motors set to same speed
    analogWrite(speedB, vel+Bweight); 
-   delay(angle);               // wait for a while (angle in mSeconds)  
-   stop();            
+   if (!dontStop) { 
+      delay(angle);               // wait for a while (angle in mSeconds)  
+      stop();
+   }            
 }
              
-void rot_ccw (int angle, int vel) {        // rotate counter-clock-wise: right-hand motor forward, left-hand motor reversed
+void rot_ccw (int angle, int vel, boolean dontStop=false) {        // rotate counter-clock-wise: right-hand motor forward, left-hand motor reversed
    digitalWrite(dirA, fwdA); 
    digitalWrite(dirB, revB);
    analogWrite(speedA, vel);   // both motors set to same speed
    analogWrite(speedB, vel+Bweight); 
-   delay(angle);               // wait for a while (angle in mSeconds)              
-   stop();
+   if (!dontStop) { 
+      delay(angle);               // wait for a while (angle in mSeconds)              
+      stop();
+   }
 }
 
 void rot_ang(float relativeAngle) {
+   sensors_event_t event; 
+   bno.getEvent(&event);
+  
+   float startingAngle = event.orientation.z;
+   Serial.println("Starting angle: ");
+   Serial.println(startingAngle);
+   Serial.println("relative angle: ");
+   Serial.println(relativeAngle);
+   Serial.println("target angle: ");
+   Serial.println(startingAngle+relativeAngle);
+   
 
+   // start spinning
+   if (relativeAngle < 0.0f) {
+       Serial.println("Starting anticlockwise turn!");
+       rot_ccw(0, motSpeed, true);
+       
+       float targetAngle = startingAngle+relativeAngle;
+       float currentAngle = startingAngle;
+       while (targetAngle < currentAngle) {
+          delay(turnDelay);
+          bno.getEvent(&event);
+          currentAngle = event.orientation.z;
+          Serial.println("current angle...");
+          Serial.println(currentAngle);
+       }
+   } else {
+       Serial.println("Starting clockwise turn!");
+       rot_cw(0, motSpeed, true);
+       
+       float targetAngle = startingAngle+relativeAngle;
+       float currentAngle = startingAngle;
+       while (targetAngle > currentAngle) {
+          delay(turnDelay);
+          bno.getEvent(&event);
+          currentAngle = event.orientation.z;
+          Serial.println("current angle...");
+          Serial.println(currentAngle);
+       }
+   }
+
+   Serial.println("Turn finished!");
+   stop();
 }
 
 
