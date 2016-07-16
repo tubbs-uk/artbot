@@ -79,6 +79,10 @@ void rot_ccw (int angle, int vel) {        // rotate counter-clock-wise: right-h
    stop();
 }
 
+void rot_ang(float relativeAngle) {
+
+}
+
 
 
 void setup() {
@@ -110,6 +114,7 @@ void setup() {
 // F<num> - drive forwards for <num>
 // R<num> - drive backwards for <num>
 // P<num> - set pen servo position to <num> (from 0 to 180)
+// T<float> - turn by this relative angle
 void processInputString() {
    if (inputString.charAt(0) == 'C') {
       // turn 'C'lockwise for some amount of ms
@@ -150,6 +155,14 @@ void processInputString() {
       
       penServo.write(penAngle);
       
+      Serial.println("DONE");
+   } else if (inputString.charAt(0) == 'T') {
+      // 'T' turn by the angle given (floating point number)
+      inputString.substring(1).toCharArray(charBuf, 50);
+      float turnAng = atof(charBuf);
+
+      rot_ang(turnAng);
+
       Serial.println("DONE");
    } else {
       Serial.write("unknown message: ");
