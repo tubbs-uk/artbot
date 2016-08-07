@@ -38,7 +38,9 @@ class SerialWrapper:
       
    def readline(self):
       if not botOptions.getSerialOn(): return ""
-      return self.m_serObj.readline()
+      line = self.m_serObj.readline()
+      svgDbg.add("Read serial data: " + line)
+      return line
 
 # message formats. <num>is any integer
 # C<num> - rotate clockwise for <num>

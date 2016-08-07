@@ -89,7 +89,7 @@ void rot_ang(float relativeAngle) {
    sensors_event_t event; 
    bno.getEvent(&event);
   
-   float startingAngle = event.orientation.z;
+   float startingAngle = event.orientation.x;
    Serial.println("Starting angle: ");
    Serial.println(startingAngle);
    Serial.println("relative angle: ");
@@ -108,7 +108,7 @@ void rot_ang(float relativeAngle) {
        while (targetAngle < currentAngle) {
           delay(turnDelay);
           bno.getEvent(&event);
-          currentAngle = event.orientation.z;
+          currentAngle = event.orientation.x;
           Serial.println("current angle...");
           Serial.println(currentAngle);
        }
@@ -121,7 +121,7 @@ void rot_ang(float relativeAngle) {
        while (targetAngle > currentAngle) {
           delay(turnDelay);
           bno.getEvent(&event);
-          currentAngle = event.orientation.z;
+          currentAngle = event.orientation.x;
           Serial.println("current angle...");
           Serial.println(currentAngle);
        }
@@ -227,13 +227,13 @@ void loop()
   bno.getEvent(&event);
   
   /* Display the floating point data */
-  Serial.print("X: ");
+  /*Serial.print("X: ");
   Serial.print(event.orientation.x, 4);
   Serial.print("\tY: ");
   Serial.print(event.orientation.y, 4);
   Serial.print("\tZ: ");
   Serial.print(event.orientation.z, 4);
-  Serial.println("");
+  Serial.println("");*/
   
   delay(100);
   
