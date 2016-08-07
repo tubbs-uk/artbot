@@ -11,6 +11,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55);
 //         brown BT transmit
 
 int motSpeed = 255;     
+int turnSpeed = 100;
 int Bweight = 0;
 int speedA = 6;          // pin 6 sets the speed of motor A (this is a PWM output)
 int speedB = 9;          // pin 9 sets the speed of motor B (this is a PWM output) 
@@ -90,21 +91,21 @@ void rot_ang(float relativeAngle) {
    bno.getEvent(&event);
   
    float startingAngle = event.orientation.x;
+   float targetAngle = fmod(startingAngle+relativeAngle, 360.0);
    Serial.println("Starting angle: ");
    Serial.println(startingAngle);
    Serial.println("relative angle: ");
    Serial.println(relativeAngle);
    Serial.println("target angle: ");
-   Serial.println(startingAngle+relativeAngle);
+   Serial.println(targetAngle);
    
 
    // start spinning
+   float currentAngle = startingAngle;
    if (relativeAngle < 0.0f) {
-       Serial.println("Starting anticlockwise turn!");
-       rot_ccw(0, motSpeed, true);
+       Serial.println("Starting neg anticlockwise turn!");
+       rot_ccw(0, turnSpeed, true);
        
-       float targetAngle = startingAngle+relativeAngle;
-       float currentAngle = startingAngle;
        while (targetAngle < currentAngle) {
           delay(turnDelay);
           bno.getEvent(&event);
@@ -113,18 +114,33 @@ void rot_ang(float relativeAngle) {
           Serial.println(currentAngle);
        }
    } else {
-       Serial.println("Starting clockwise turn!");
-       rot_cw(0, motSpeed, true);
+       if (currentAngle < targetAngle) {
+          Serial.println("Starting clockwise turn!");
+          rot_cw(0, turnSpeed, true);
        
-       float targetAngle = startingAngle+relativeAngle;
-       float currentAngle = startingAngle;
-       while (targetAngle > currentAngle) {
-          delay(turnDelay);
-          bno.getEvent(&event);
-          currentAngle = event.orientation.x;
-          Serial.println("current angle...");
-          Serial.println(currentAngle);
+          while (currentAngle < targetAngle) {
+             delay(turnDelay);
+             bno.getEvent(&event);
+             currentAngle = event.orientation.x;
+             Serial.println("current angle...");
+             Serial.println(currentAngle);
+          }
+       } else if (currentAngle > targetAngle) {
+          Serial.println("Starting anticlockwise turn!");
+          rot_ccw(0, turnSpeed, true);
+       
+          while (currentAngle > targetAngle) {
+             delay(turnDelay);
+             bno.getEvent(&event);
+             currentAngle = event.orientation.x;
+             Serial.println("current angle...");
+             Serial.println(currentAngle);
+          }
+       } else {
+          // altready at target angle, do nothing
        }
+    
+       
    }
 
    Serial.println("Turn finished!");
