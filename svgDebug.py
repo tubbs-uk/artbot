@@ -4,7 +4,7 @@ class SvgDebug:
 
    def __init__(self):
       #self.dbgWin = dbgWin
-      self.debugOn = False
+      self.debugOn = True
 
    def add(self, text):
       if not self.debugOn:
