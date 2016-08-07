@@ -32,15 +32,24 @@ class SerialWrapper:
 
 
    def write(self, s):
+      svgDbg.add("Writing serial data: " + s, noNewline=True)
       if not botOptions.getSerialOn(): return
       self.m_serObj.write(s)
       
    def readline(self):
       if not botOptions.getSerialOn(): return ""
-      return self.m_serObj.readline()
-   
-   
-   
+      line = self.m_serObj.readline()
+      svgDbg.add("Read serial data: " + line)
+      return line
+
+# message formats. <num>is any integer
+# C<num> - rotate clockwise for <num>
+# A<num> - rotate anticlockwise for <num>
+# F<num> - drive forwards for <num>
+# R<num> - drive backwards for <num>
+# P<num> - set pen servo position to <num> (from 0 to 180)
+# T<float> - turn by this relative angle
+
 class RobotDriver:
 
    def __init__(self, gui, svgW, svgH, lines):
@@ -53,6 +62,9 @@ class RobotDriver:
 
       # starts with pen up
       self.penIsUp = True
+
+      # send turns as direction + time, or relative angle
+      self.sendAngles = True
 
       # try and estimate time to either raise or lower pen (in ms)
       self.m_movePenTime = 100
@@ -82,16 +94,21 @@ class RobotDriver:
 
    def doTurn(self, ang, angMs): 
       #svgDbg.add("doTurn args: ang='" + str(ang) + "', angMs='" + str(angMs) + "'")
-      # default direction anti-clockwise
-      dir = 'A'
-      dirTxt = "anticlockwise"
-      if ang < 0.0:
-         # if angle negative, turn clockwise
-         dir = 'C'
-         dirTxt = "clockwise"
+      if self.sendAngles:
+         # sending angle data
+         svgDbg.add("Turning by " + str(ang) + " degrees")
+         self.m_ser.write('T' + str(ang) + '\n')
+      else:
+         # default direction anti-clockwise
+         dir = 'A'
+         dirTxt = "anticlockwise"
+         if ang < 0.0:
+            # if angle negative, turn clockwise
+            dir = 'C'
+            dirTxt = "clockwise"
       
-      svgDbg.add("Turning " + dirTxt + " " + str(ang) + " degress (" + str(angMs) + "ms)")
-      self.m_ser.write(dir + str(angMs) + '\n')
+         svgDbg.add("Turning " + dirTxt + " " + str(ang) + " degress (" + str(angMs) + "ms)")
+         self.m_ser.write(dir + str(angMs) + '\n')
    
       self.m_ser.readline()
       # finished turning now
@@ -213,14 +230,20 @@ class RobotDriver:
       # set pause/resume buttons up in gui
       if self.m_gui:
          self.m_gui.setButtonsOn(True)
-      
+
+      # line contains ['C' or 'L', original line co-ords, calcang, angleMs, distMs]
+      # eg: ['C', [0, 0, 85, 300], 71.56505117707799, 593, 935]
+      # or: ['L', [85, 300, 85, 94], -71.56505117707798, 593, 618]
       for line in self.m_lineTimes:
          lineno += 1
          svgDbg.add("----------------")
          svgDbg.add("looking at line " + str(lineno) + "/" + str(totLines) + ": " + str(line))
-         
-         self.doTurn(line[2], line[3])
-         timeDone += line[3]
+
+         if line[2] != 0.0:
+            # turn if not a zero angle
+            svgDbg.add("TURN")
+            self.doTurn(line[2], line[3])
+            timeDone += line[3]
          
          if line[0] == 'C':
             svgDbg.add("CONNECTOR")
