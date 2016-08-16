@@ -87,6 +87,7 @@ void rot_ccw (int angle, int vel, boolean dontStop=false) {        // rotate cou
 }
 
 void rot_ang(float relativeAngle) {
+  // relative angle should be between -180 and 180 degrees
    sensors_event_t event; 
    bno.getEvent(&event);
   
@@ -102,45 +103,30 @@ void rot_ang(float relativeAngle) {
 
    // start spinning
    float currentAngle = startingAngle;
-   if (relativeAngle < 0.0f) {
-       Serial.println("Starting neg anticlockwise turn!");
-       rot_ccw(0, turnSpeed, true);
-       
-       while (targetAngle < currentAngle) {
-          delay(turnDelay);
-          bno.getEvent(&event);
-          currentAngle = event.orientation.x;
-          Serial.println("current angle...");
-          Serial.println(currentAngle);
-       }
+   if (relativeAngle > 0.0) {
+      Serial.println("Starting clockwise turn!");
+      rot_cw(0, turnSpeed, true);
+   
+      while (currentAngle < fmod(targetAngle, 360.0)) {
+         delay(turnDelay);
+         bno.getEvent(&event);
+         currentAngle = event.orientation.x;
+         Serial.println("current angle...");
+         Serial.println(currentAngle);
+      }
+   } else if (relativeAngle < 0.0) {
+      Serial.println("Starting anticlockwise turn!");
+      rot_ccw(0, turnSpeed, true);
+   
+      while (currentAngle > fmod(targetAngle, 360.0)) {
+         delay(turnDelay);
+         bno.getEvent(&event);
+         currentAngle = event.orientation.x;
+         Serial.println("current angle...");
+         Serial.println(currentAngle);
+      }
    } else {
-       if (currentAngle < targetAngle) {
-          Serial.println("Starting clockwise turn!");
-          rot_cw(0, turnSpeed, true);
-       
-          while (currentAngle < targetAngle) {
-             delay(turnDelay);
-             bno.getEvent(&event);
-             currentAngle = event.orientation.x;
-             Serial.println("current angle...");
-             Serial.println(currentAngle);
-          }
-       } else if (currentAngle > targetAngle) {
-          Serial.println("Starting anticlockwise turn!");
-          rot_ccw(0, turnSpeed, true);
-       
-          while (currentAngle > targetAngle) {
-             delay(turnDelay);
-             bno.getEvent(&event);
-             currentAngle = event.orientation.x;
-             Serial.println("current angle...");
-             Serial.println(currentAngle);
-          }
-       } else {
-          // altready at target angle, do nothing
-       }
-    
-       
+      // altready at target angle, do nothing
    }
 
    Serial.println("Turn finished!");
