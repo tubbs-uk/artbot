@@ -112,7 +112,7 @@ void rot_ang(float relativeAngle) {
       Serial.println("Starting clockwise turn!");
       rot_cw(0, turnSpeed, true);
    
-      while (currentAngle < fmod(targetAngle, 360.0)) {
+      while ((targetAngle > startingAngle && currentAngle < targetAngle) || (targetAngle < startingAngle && currentAngle > targetAngle)) {
          delay(turnDelay);
          bno.getEvent(&event);
          currentAngle = event.orientation.x;
@@ -123,8 +123,7 @@ void rot_ang(float relativeAngle) {
       Serial.println("Starting anticlockwise turn!");
       rot_ccw(0, turnSpeed, true);
    
-      while (currentAngle > fmod(targetAngle, 360.0) ||
-             (wrappedRound && currentAngle < fmod(targetAngle, 360.0))) {
+      while ((targetAngle < startingAngle && currentAngle > targetAngle) || (targetAngle > startingAngle && currentAngle < targetAngle)) {
          delay(turnDelay);
          bno.getEvent(&event);
          currentAngle = event.orientation.x;
