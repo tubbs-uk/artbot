@@ -11,7 +11,8 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55);
 //         brown BT transmit
 
 int motSpeed = 255;     
-int turnSpeed = 100;
+// turn off turn when debugging int turnSpeed = 100;
+int turnSpeed = 0;
 int Bweight = 0;
 int speedA = 6;          // pin 6 sets the speed of motor A (this is a PWM output)
 int speedB = 9;          // pin 9 sets the speed of motor B (this is a PWM output) 
@@ -27,7 +28,8 @@ int fullRotationMSecs = 11811;
 // number of ms to drive the full length of the sheet
 int fullLengthMSecs = 5000;
 // time to wait (ms) before polling angle when turning
-int turnDelay = 10;
+//int turnDelay = 10;
+int turnDelay = 100;
 
 // 10000 drives for 405mm
 // so 5000 should go 202.5mm
@@ -93,6 +95,9 @@ void rot_ang(float relativeAngle) {
   
    float startingAngle = event.orientation.x;
    float targetAngle = fmod(startingAngle+relativeAngle, 360.0);
+   if (targetAngle < 0.0) {
+      targetAngle += 360.0;
+   }
    Serial.println("Starting angle: ");
    Serial.println(startingAngle);
    Serial.println("relative angle: ");
@@ -118,7 +123,8 @@ void rot_ang(float relativeAngle) {
       Serial.println("Starting anticlockwise turn!");
       rot_ccw(0, turnSpeed, true);
    
-      while (currentAngle > fmod(targetAngle, 360.0)) {
+      while (currentAngle > fmod(targetAngle, 360.0) ||
+             (wrappedRound && currentAngle < fmod(targetAngle, 360.0))) {
          delay(turnDelay);
          bno.getEvent(&event);
          currentAngle = event.orientation.x;
