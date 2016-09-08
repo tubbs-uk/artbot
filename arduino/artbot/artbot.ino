@@ -108,36 +108,57 @@ void rot_ang(float relativeAngle) {
 
    // start spinning
    float currentAngle = startingAngle;
+   bool wrapped = false;
    if (relativeAngle > 0.0) {
       Serial.println("Starting clockwise turn!");
       rot_cw(0, turnSpeed, true);
    
-      while ((targetAngle > startingAngle && currentAngle < targetAngle) || (targetAngle < startingAngle && currentAngle > targetAngle)) {
+      while ((targetAngle > startingAngle && currentAngle < targetAngle) || (targetAngle < startingAngle && currentAngle > targetAngle) || (wrapped && currentAngle < targetAngle)) {
          delay(turnDelay);
          bno.getEvent(&event);
          currentAngle = event.orientation.x;
          Serial.println("current angle...");
          Serial.println(currentAngle);
+         Serial.print("first clause = "); Serial.println((int)(targetAngle > startingAngle && currentAngle < targetAngle));
+         Serial.print("second clause = "); Serial.println((int)(targetAngle < startingAngle && currentAngle > targetAngle));
+         Serial.print("third clause = "); Serial.println((int)(wrapped && currentAngle < targetAngle));
+         if ((targetAngle < startingAngle) && (int)(currentAngle < startingAngle)) {
+            Serial.println("wrapped!");
+            wrapped = true;
+         }
       }
    } else if (relativeAngle < 0.0) {
       Serial.println("Starting anticlockwise turn!");
       rot_ccw(0, turnSpeed, true);
    
-      while ((targetAngle < startingAngle && currentAngle > targetAngle) || (targetAngle > startingAngle && currentAngle < targetAngle)) {
+      while ((targetAngle < startingAngle && currentAngle > targetAngle) || (targetAngle > startingAngle && currentAngle < targetAngle) || (wrapped && currentAngle < targetAngle)) {
          delay(turnDelay);
          bno.getEvent(&event);
          currentAngle = event.orientation.x;
          Serial.println("current angle...");
          Serial.println(currentAngle);
+         Serial.print("first clause = "); Serial.println((int)(targetAngle < startingAngle && currentAngle > targetAngle));
+         Serial.print("second clause = "); Serial.println((int)(targetAngle > startingAngle && currentAngle < targetAngle));
+         Serial.print("third clause = "); Serial.println((int)(wrapped && currentAngle < targetAngle));
+         if ((targetAngle > startingAngle) && (currentAngle > startingAngle)) {
+            Serial.println("wrapped!");
+            wrapped = true;
+         }
       }
    } else {
       // altready at target angle, do nothing
    }
 
    Serial.println("Turn finished!");
+   Serial.print("final state clockwise. first clause = "); Serial.println((targetAngle > startingAngle && currentAngle < targetAngle));
+   Serial.print("final state clockwise. second clause = "); Serial.println((targetAngle < startingAngle && currentAngle > targetAngle));
+   Serial.print("final state clockwise. third clause = "); Serial.println((wrapped && currentAngle < targetAngle));
+   Serial.print("final state anticlockwise. first clause = "); Serial.println((targetAngle < startingAngle && currentAngle > targetAngle));
+   Serial.print("final state anticlockwise. second clause = "); Serial.println((targetAngle > startingAngle && currentAngle < targetAngle));
+   Serial.print("final state anticlockwise. third clause = "); Serial.println((wrapped && currentAngle < targetAngle));         
    stop();
 }
-
+  
 
 
 void setup() {
