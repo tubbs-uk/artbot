@@ -108,45 +108,61 @@ void rot_ang(float relativeAngle) {
 
    // start spinning
    float currentAngle = startingAngle;
+   bool turnIncludesWrap = false;
    bool wrapped = false;
    if (relativeAngle > 0.0) {
+      if (targetAngle < startingAngle) {
+         turnIncludesWrap = true;
+      }
+
       Serial.println("Starting clockwise turn!");
       rot_cw(0, turnSpeed, true);
-   
-      while ((targetAngle > startingAngle && currentAngle < targetAngle) || (targetAngle < startingAngle && currentAngle > targetAngle) || (wrapped && currentAngle < targetAngle)) {
+
+      while ((!turnIncludesWrap && currentAngle < targetAngle) || (turnIncludesWrap && ((!wrapped && currentAngle > targetAngle) || (wrapped && currentAngle < targetAngle)))) {
          delay(turnDelay);
          bno.getEvent(&event);
          currentAngle = event.orientation.x;
          Serial.println("current angle...");
          Serial.println(currentAngle);
-         Serial.print("first clause = "); Serial.println((int)(targetAngle > startingAngle && currentAngle < targetAngle));
-         Serial.print("second clause = "); Serial.println((int)(targetAngle < startingAngle && currentAngle > targetAngle));
-         Serial.print("third clause = "); Serial.println((int)(wrapped && currentAngle < targetAngle));
-         if ((targetAngle < startingAngle) && (int)(currentAngle < startingAngle)) {
+         Serial.print("first clause = "); Serial.println((int)(!turnIncludesWrap && currentAngle < targetAngle));
+         Serial.print("second clause = "); Serial.println((int)(turnIncludesWrap && ((!wrapped && currentAngle > targetAngle) || (wrapped && currentAngle < targetAngle))));
+         Serial.print("third clause = "); Serial.println((int)((!wrapped && currentAngle > targetAngle) || (wrapped && currentAngle < targetAngle)));
+         Serial.print("fourth clause = "); Serial.println((int)(!wrapped && currentAngle > targetAngle));
+         Serial.print("fifth clause = "); Serial.println((int)(wrapped && currentAngle < targetAngle));
+
+         //  ( turn includes a wrap      ) AND  ( gone round the 0 degree point )
+         if (turnIncludesWrap && (currentAngle < startingAngle-2.0)) {
             Serial.println("wrapped!");
             wrapped = true;
          }
       }
    } else if (relativeAngle < 0.0) {
+      if (targetAngle > startingAngle) {
+         turnIncludesWrap = true;
+      }
+
       Serial.println("Starting anticlockwise turn!");
       rot_ccw(0, turnSpeed, true);
-   
-      while ((targetAngle < startingAngle && currentAngle > targetAngle) || (targetAngle > startingAngle && currentAngle < targetAngle) || (wrapped && currentAngle < targetAngle)) {
+
+      while ((!turnIncludesWrap && currentAngle > targetAngle) || (turnIncludesWrap && ((!wrapped && currentAngle < targetAngle) || (wrapped && currentAngle > targetAngle)))) {
          delay(turnDelay);
          bno.getEvent(&event);
          currentAngle = event.orientation.x;
          Serial.println("current angle...");
          Serial.println(currentAngle);
-         Serial.print("first clause = "); Serial.println((int)(targetAngle < startingAngle && currentAngle > targetAngle));
-         Serial.print("second clause = "); Serial.println((int)(targetAngle > startingAngle && currentAngle < targetAngle));
-         Serial.print("third clause = "); Serial.println((int)(wrapped && currentAngle < targetAngle));
-         if ((targetAngle > startingAngle) && (currentAngle > startingAngle)) {
+         Serial.print("first clause = "); Serial.println((int)(!turnIncludesWrap && currentAngle > targetAngle));
+         Serial.print("second clause = "); Serial.println((int)(turnIncludesWrap && ((!wrapped && currentAngle < targetAngle) || (wrapped && currentAngle > targetAngle))));
+         Serial.print("third clause = "); Serial.println((int)((!wrapped && currentAngle < targetAngle) || (wrapped && currentAngle > targetAngle)));
+         Serial.print("fourth clause = "); Serial.println((int)(!wrapped && currentAngle < targetAngle));
+         Serial.print("fifth clause = "); Serial.println((int)(wrapped && currentAngle > targetAngle));
+         if (turnIncludesWrap && (currentAngle > startingAngle+2.0)) {
             Serial.println("wrapped!");
             wrapped = true;
          }
       }
    } else {
       // altready at target angle, do nothing
+      // or could set up an angle threshold, like 0.5 degrees and also do nothing
    }
 
    Serial.println("Turn finished!");
